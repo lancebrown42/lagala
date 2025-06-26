@@ -135,14 +135,16 @@ func _on_lives_changed(new_lives: int):
 
 # Player signal handlers
 func _on_player_shot():
-	print("Player shot fired")
+	# print("Player shot fired")  # DEBUG DISABLED
+	pass
 
 func _on_player_hit():
 	print("Player was hit!")
 	game_manager.lose_life()
 
 func _on_bullet_fired(bullet_position: Vector2):
-	print("Bullet fired at position: ", bullet_position)
+	# print("Bullet fired at position: ", bullet_position)  # DEBUG DISABLED
+	pass
 
 func setup_player_sprite():
 	"""Set up the player sprite with a simple texture"""
@@ -171,31 +173,23 @@ func setup_player_sprite():
 # Enemy signal handlers
 func _on_enemy_destroyed(points: int):
 	"""Handle enemy destruction and award points"""
-	print("=== MAIN: Enemy destroyed signal received ===")
-	print("Points to award: ", points)
-	print("Player visible before: ", player.visible if player else "player is null")
-	print("GameManager exists: ", game_manager != null)
-	
+	# DEBUG DISABLED - Minimal output only
 	if game_manager:
-		print("Current score before: ", game_manager.score)
 		game_manager.add_score(points)
-		print("Current score after: ", game_manager.score)
-	else:
-		print("ERROR: GameManager is null!")
-	
-	print("Player visible after: ", player.visible if player else "player is null")
-	print("=== END Enemy destroyed handling ===")
 
 func _on_wave_complete(wave_number: int):
 	"""Handle wave completion"""
 	print("Wave ", wave_number, " completed!")
-	print("Player visible: ", player.visible if player else "player is null")
+	# Ensure player stays visible during wave transitions
+	if player:
+		player.visible = true
 	# Could add bonus points, show wave complete message, etc.
 
 func _on_all_enemies_destroyed():
 	"""Handle all enemies being destroyed"""
 	print("All enemies destroyed!")
-	print("Player visible: ", player.visible if player else "player is null")
+	# DEBUG DISABLED - Don't check player visibility here
+	# print("Player visible: ", player.visible if player else "player is null")
 	# Wave will automatically start the next one
 
 # Removed _input function that was conflicting with shoot action

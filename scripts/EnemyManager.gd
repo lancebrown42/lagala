@@ -14,6 +14,11 @@ class_name EnemyManager
 @export var formation_start_y: float = 80.0    # Top of formation (moved down a bit)
 @export var enemy_spacing: Vector2 = Vector2(80, 60)  # Increased spacing
 
+# Formation movement
+var formation_descent_timer: float = 0.0
+var formation_descent_speed: float = 10.0  # How fast formation moves down
+var formation_descent_interval: float = 15.0  # Every 15 seconds, move formation down
+
 # Wave management
 var current_wave: int = 1
 var enemies_alive: Array[Enemy] = []
@@ -32,15 +37,19 @@ signal enemy_destroyed_signal(points: int)
 signal all_enemies_destroyed
 
 func _ready():
-	print("EnemyManager initialized")
+	# print("EnemyManager initialized")  # DEBUG DISABLED
 	screen_size = get_viewport().get_visible_rect().size
+	
+	# Initialize wave state properly
+	wave_complete = true  # Start with wave complete so no premature completion
+	current_wave = 0      # Start at wave 0, will be set to 1 when game starts
 	
 	# Load enemy scene if not already set
 	if not enemy_scene:
-		print("Loading Enemy scene...")
+		# print("Loading Enemy scene...")  # DEBUG DISABLED
 		enemy_scene = load("res://scenes/Enemy.tscn")
 		if not enemy_scene:
-			print("ERROR: Could not load Enemy scene!")
+			print("ERROR: Could not load Enemy scene!")  # Keep error messages
 			print("Attempting to create a fallback enemy scene...")
 			create_fallback_enemy_scene()
 		else:
@@ -50,16 +59,18 @@ func _ready():
 func _process(delta):
 	handle_spawning(delta)
 	check_wave_completion()
+	handle_formation_descent(delta)
 
 func start_wave(wave_number: int = 1):
 	"""Start a new wave of enemies"""
-	print("=== EnemyManager.start_wave() called with wave ", wave_number, " ===")
+	# DEBUG DISABLED - Minimal output only
+	# print("=== EnemyManager.start_wave() called with wave ", wave_number, " ===")
 	
 	current_wave = wave_number
 	wave_complete = false
 	
-	print("Starting wave ", current_wave)
-	print("Resetting wave_complete flag to: ", wave_complete)
+	print("Starting wave ", current_wave)  # Keep essential message
+	# print("Resetting wave_complete flag to: ", wave_complete)  # DEBUG DISABLED
 	
 	# Clear any existing enemies
 	clear_all_enemies()
@@ -71,19 +82,21 @@ func start_wave(wave_number: int = 1):
 	enemies_to_spawn = spawn_queue.size()
 	spawn_timer = 0.0
 	
-	print("Wave ", current_wave, " will spawn ", enemies_to_spawn, " enemies")
-	print("Spawn queue has ", spawn_queue.size(), " positions")
-	print("Enemy scene loaded: ", enemy_scene != null)
-	print("=== END start_wave setup ===")
+	# DEBUG DISABLED
+	# print("Wave ", current_wave, " will spawn ", enemies_to_spawn, " enemies")
+	# print("Spawn queue has ", spawn_queue.size(), " positions")
+	# print("Enemy scene loaded: ", enemy_scene != null)
+	# print("=== END start_wave setup ===")
 
 func generate_formation_positions():
 	"""Generate the classic Galaga formation positions"""
 	spawn_queue.clear()
 	
-	print("Generating formation positions...")
-	print("Screen size: ", screen_size)
-	print("Formation start: (", formation_start_x, ", ", formation_start_y, ")")
-	print("Enemy spacing: ", enemy_spacing)
+	# DEBUG DISABLED - Minimal output only
+	# print("Generating formation positions...")
+	# print("Screen size: ", screen_size)
+	# print("Formation start: (", formation_start_x, ", ", formation_start_y, ")")
+	# print("Enemy spacing: ", enemy_spacing)
 	
 	# Create formation grid
 	for row in range(formation_rows):
@@ -101,12 +114,13 @@ func generate_formation_positions():
 			
 			var pos = Vector2(x_pos, y_pos)
 			spawn_queue.append(pos)
-			print("Formation position ", row, ",", col, ": ", pos)
+			# DEBUG DISABLED
+			# print("Formation position ", row, ",", col, ": ", pos)
 	
 	# Shuffle the spawn order for more interesting formation
 	spawn_queue.shuffle()
 	
-	print("Generated ", spawn_queue.size(), " formation positions")
+	# print("Generated ", spawn_queue.size(), " formation positions")  # DEBUG DISABLED
 
 func handle_spawning(delta):
 	"""Handle the spawning of enemies with delays"""
@@ -209,88 +223,86 @@ func check_wave_completion():
 
 func complete_wave():
 	"""Handle wave completion"""
-	print("=== WAVE COMPLETION ===")
+	# DEBUG DISABLED - Minimal output only
 	wave_complete = true
-	print("Wave ", current_wave, " complete!")
-	print("About to emit wave_complete_signal")
+	print("Wave ", current_wave, " complete!")  # Keep essential message
 	
 	emit_signal("wave_complete_signal", current_wave)
-	print("wave_complete_signal emitted")
-	
 	emit_signal("all_enemies_destroyed")
-	print("all_enemies_destroyed signal emitted")
 	
 	# Start next wave after a delay
-	print("Wave complete! Starting next wave in 3 seconds...")
+	print("Starting next wave in 3 seconds...")  # Keep essential message
 	await get_tree().create_timer(3.0).timeout
-	print("Starting next wave...")
+	print("Starting wave ", current_wave + 1, "...")  # Keep essential message
 	start_wave(current_wave + 1)
-	print("=== END WAVE COMPLETION ===")
 
 func clear_all_enemies():
 	"""Remove all enemies from the scene"""
-	print("=== CLEARING ALL ENEMIES ===")
-	print("WARNING: clear_all_enemies() called!")
-	print("Call stack trace:")
-	print(get_stack())
-	print("Enemies to clear: ", enemies_alive.size())
+	# DEBUG DISABLED - Remove stack trace spam
+	# print("=== CLEARING ALL ENEMIES ===")
+	# print("WARNING: clear_all_enemies() called!")
+	# print("Call stack trace:")
+	# print(get_stack())
+	# print("Enemies to clear: ", enemies_alive.size())
 	
 	for enemy in enemies_alive:
 		if is_instance_valid(enemy):
-			print("Clearing enemy: ", enemy.name)
+			# print("Clearing enemy: ", enemy.name)  # DEBUG DISABLED
 			enemy.queue_free()
-		else:
-			print("Invalid enemy found during clear")
+		# else:
+			# print("Invalid enemy found during clear")  # DEBUG DISABLED
 	
 	enemies_alive.clear()
-	print("Enemies cleared. Array size now: ", enemies_alive.size())
-	print("=== END CLEAR ENEMIES ===")
+	# print("Enemies cleared. Array size now: ", enemies_alive.size())  # DEBUG DISABLED
+	# print("=== END CLEAR ENEMIES ===")  # DEBUG DISABLED
 
 func get_enemy_count() -> int:
 	"""Get the number of enemies currently alive"""
 	enemies_alive = enemies_alive.filter(func(enemy): return is_instance_valid(enemy))
 	return enemies_alive.size()
 
+func handle_formation_descent(delta):
+	"""Gradually move formation down to increase pressure"""
+	formation_descent_timer += delta
+	if formation_descent_timer >= formation_descent_interval and enemies_alive.size() > 0:
+		move_formation_down()
+		formation_descent_timer = 0.0
+
+func move_formation_down():
+	"""Move the entire formation down by a small amount"""
+	formation_start_y += formation_descent_speed
+	
+	# Update all enemy formation positions
+	for enemy in enemies_alive:
+		if is_instance_valid(enemy):
+			enemy.formation_position.y += formation_descent_speed
+	
+	print("Formation moved down to y: ", formation_start_y)
+
 func _on_enemy_destroyed(enemy: Enemy, points: int):
 	"""Handle enemy destruction"""
-	print("=== ENEMY MANAGER: Enemy destroyed ===")
-	print("Enemy: ", enemy.name if enemy else "null")
-	print("Points: ", points)
-	print("Enemies alive before removal: ", enemies_alive.size())
-	
-	# Print all current enemies for debugging
-	print("Current enemies list:")
-	for i in range(enemies_alive.size()):
-		var e = enemies_alive[i]
-		if is_instance_valid(e):
-			print("  ", i, ": ", e.name, " at ", e.position)
-		else:
-			print("  ", i, ": INVALID ENEMY")
+	# DEBUG DISABLED - Minimal output only
+	# print("=== ENEMY MANAGER: Enemy destroyed ===")
+	# print("Enemy: ", enemy.name if enemy else "null")
+	# print("Points: ", points)
+	# print("Enemies alive before removal: ", enemies_alive.size())
 	
 	# Remove from tracking
 	if enemy in enemies_alive:
 		enemies_alive.erase(enemy)
-		print("Enemy removed from tracking")
-	else:
-		print("WARNING: Enemy not found in enemies_alive array")
+		# print("Enemy removed from tracking")  # DEBUG DISABLED
+	# else:
+		# print("WARNING: Enemy not found in enemies_alive array")  # DEBUG DISABLED
 	
-	print("Enemies alive after removal: ", enemies_alive.size())
+	# print("Enemies alive after removal: ", enemies_alive.size())  # DEBUG DISABLED
 	
 	# Check if wave is complete
 	if enemies_alive.size() == 0 and not wave_complete:
-		print("=== ALL ENEMIES DESTROYED ===")
-		print("Enemies alive: ", enemies_alive.size())
-		print("Wave complete flag: ", wave_complete)
-		print("Calling complete_wave()...")
+		print("Wave ", current_wave, " complete!")  # Keep wave completion message
 		complete_wave()
-	else:
-		print("Wave not complete yet. Enemies remaining: ", enemies_alive.size())
-		print("Wave complete flag: ", wave_complete)
 	
 	# Emit signal for score system
-	print("Emitting enemy_destroyed_signal to Main")
 	emit_signal("enemy_destroyed_signal", points)
-	print("Signal emitted successfully")
 
 func _on_enemy_hit_player(enemy: Enemy):
 	"""Handle enemy hitting the player"""

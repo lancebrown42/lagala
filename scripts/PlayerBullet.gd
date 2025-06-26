@@ -55,32 +55,33 @@ func _on_body_entered(body):
 
 func _on_area_entered(area):
 	"""Handle collision with areas (enemy bullets, etc.)"""
-	print("=== BULLET COLLISION ===")
-	print("Bullet hit area: ", area.name if area else "null")
-	print("Area parent: ", area.get_parent().name if area and area.get_parent() else "null")
-	print("Area groups: ", area.get_groups() if area else "none")
+	# DEBUG DISABLED
+	# print("=== BULLET COLLISION ===")
+	# print("Bullet hit area: ", area.name if area else "null")
+	# print("Area parent: ", area.get_parent().name if area and area.get_parent() else "null")
+	# print("Area groups: ", area.get_groups() if area else "none")
 	
 	if area.is_in_group("enemies"):
-		print("Hit confirmed: Enemy area detected")
+		# print("Hit confirmed: Enemy area detected")  # DEBUG DISABLED
 		# The enemy's Area2D was hit, get the parent Enemy node
 		var enemy = area.get_parent()
-		print("Enemy found: ", enemy.name if enemy else "null")
+		# print("Enemy found: ", enemy.name if enemy else "null")  # DEBUG DISABLED
 		
 		if enemy.has_method("take_damage"):
-			print("Calling enemy.take_damage() with damage: ", damage)
+			# print("Calling enemy.take_damage() with damage: ", damage)  # DEBUG DISABLED
 			enemy.take_damage(damage)
 			emit_signal("enemy_hit", enemy, damage)
-			print("Enemy hit signal emitted")
-		else:
-			print("ERROR: Enemy doesn't have take_damage method")
+			# print("Enemy hit signal emitted")  # DEBUG DISABLED
+		# else:
+			# print("ERROR: Enemy doesn't have take_damage method")  # DEBUG DISABLED
 		
-		print("About to destroy bullet")
+		# print("About to destroy bullet")  # DEBUG DISABLED
 		destroy_bullet()
-		print("Bullet destroyed")
-	else:
-		print("Not an enemy - ignoring collision")
+		# print("Bullet destroyed")  # DEBUG DISABLED
+	# else:
+		# print("Not an enemy - ignoring collision")  # DEBUG DISABLED
 	
-	print("=== END BULLET COLLISION ===")
+	# print("=== END BULLET COLLISION ===")  # DEBUG DISABLED
 
 func destroy_bullet():
 	"""Destroy the bullet"""

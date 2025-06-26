@@ -17,6 +17,13 @@ class_name Player
 var screen_size: Vector2
 var ship_width: float = 32.0  # Will be updated based on sprite
 
+# Invulnerability system
+var is_invulnerable: bool = false
+var invulnerability_time: float = 2.0  # 2 seconds of invulnerability
+var invulnerability_timer: float = 0.0
+var blink_interval: float = 0.1  # How fast to blink during invulnerability
+var blink_timer: float = 0.0
+
 # Shooting system
 var can_shoot: bool = true
 var shoot_timer: float = 0.0
@@ -43,6 +50,9 @@ func _ready():
 	# Set initial position (bottom center of screen)
 	position = Vector2(screen_size.x / 2, screen_size.y - 50)
 	
+	# Set up collision detection for enemy hits
+	setup_hit_detection()
+	
 	# Update ship width based on sprite (if available)
 	var sprite = get_node("Sprite2D") if has_node("Sprite2D") else null
 	if sprite and sprite.texture:
@@ -51,6 +61,7 @@ func _ready():
 func _physics_process(delta):
 	handle_movement(delta)
 	handle_shooting(delta)
+	handle_invulnerability(delta)
 	enforce_boundaries()
 	
 	# Move the character
@@ -114,22 +125,94 @@ func shoot():
 	emit_signal("player_shot")
 	emit_signal("bullet_fired", bullet.position)
 	
-	print("Player fired bullet at: ", bullet.position)
+	# print("Player fired bullet at: ", bullet.position)  # DEBUG DISABLED
 
 func enforce_boundaries():
 	"""Keep player within screen boundaries"""
 	var half_width = ship_width / 2
 	position.x = clamp(position.x, half_width, screen_size.x - half_width)
 
+func handle_invulnerability(delta):
+	"""Handle invulnerability timer and blinking effect"""
+	if is_invulnerable:
+		invulnerability_timer -= delta
+		blink_timer -= delta
+		
+		# Blink effect during invulnerability
+		if blink_timer <= 0:
+			visible = !visible
+			blink_timer = blink_interval
+		
+		# End invulnerability
+		if invulnerability_timer <= 0:
+			is_invulnerable = false
+			visible = true  # Make sure player is visible when invulnerability ends
+
 func take_damage():
 	"""Handle player taking damage"""
+	print("=== PLAYER TAKE_DAMAGE CALLED ===")
+	if is_invulnerable:
+		print("Player is invulnerable - ignoring damage")
+		return  # Already invulnerable, ignore hit
+	
+	print("Player hit! Processing damage...")
+	
+	# Emit signal for game manager to handle lives
 	emit_signal("player_hit")
-	print("Player hit!")
+	print("player_hit signal emitted")
+	
+	# Start invulnerability
+	is_invulnerable = true
+	invulnerability_timer = invulnerability_time
+	blink_timer = 0.0
+	print("Invulnerability started for ", invulnerability_time, " seconds")
+	
+	# Respawn at center bottom
+	respawn_at_center()
+	print("=== END PLAYER TAKE_DAMAGE ===")
+
+func respawn_at_center():
+	"""Respawn player at center of screen"""
+	position = Vector2(screen_size.x / 2, screen_size.y - 60)
+	velocity = Vector2.ZERO  # Stop all movement
 
 func _on_bullet_destroyed(bullet):
 	"""Remove bullet from active bullets list"""
 	if bullet in active_bullets:
 		active_bullets.erase(bullet)
+
+func setup_hit_detection():
+	"""Set up collision detection for enemy hits"""
+	print("Setting up player hit detection...")
+	if has_node("HitBox"):
+		var hitbox = get_node("HitBox")
+		print("HitBox found, connecting signals...")
+		if not hitbox.body_entered.is_connected(_on_hit_by_enemy):
+			hitbox.body_entered.connect(_on_hit_by_enemy)
+			print("body_entered signal connected")
+		if not hitbox.area_entered.is_connected(_on_area_hit_by_enemy):
+			hitbox.area_entered.connect(_on_area_hit_by_enemy)
+			print("area_entered signal connected")
+	else:
+		print("ERROR: HitBox not found on Player!")
+
+func _on_hit_by_enemy(body):
+	"""Handle being hit by enemy body"""
+	print("Player hit by enemy body: ", body.name if body else "null")
+	if body.is_in_group("enemies"):
+		print("Confirmed enemy hit - calling take_damage()")
+		take_damage()
+	else:
+		print("Not an enemy - ignoring hit")
+
+func _on_area_hit_by_enemy(area):
+	"""Handle being hit by enemy area"""
+	print("Player hit by enemy area: ", area.name if area else "null")
+	if area.is_in_group("enemies"):
+		print("Confirmed enemy area hit - calling take_damage()")
+		take_damage()
+	else:
+		print("Not an enemy area - ignoring hit")
 
 func get_active_bullet_count() -> int:
 	"""Get number of active bullets"""

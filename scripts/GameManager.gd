@@ -67,25 +67,24 @@ func toggle_pause():
 
 func add_score(points: int):
 	"""Add points to the score"""
-	print("=== GAME MANAGER: Adding score ===")
-	print("Points to add: ", points)
-	print("Current score: ", score)
-	print("Current lives: ", lives)
-	print("Current state: ", current_state)
-	
+	# DEBUG DISABLED - Minimal output only
 	score += points
-	print("New score: ", score)
-	
 	emit_signal("score_changed", score)
-	print("score_changed signal emitted")
-	print("=== END Add score ===")
 
 func lose_life():
 	"""Player loses a life"""
-	lives -= 1
-	emit_signal("lives_changed", lives)
-	
-	if lives <= 0:
+	if lives > 0:
+		lives -= 1
+		print("Player lost a life! Lives remaining: ", lives)
+		emit_signal("lives_changed", lives)
+		
+		if lives <= 0:
+			print("Game Over!")
+			end_game()
+		else:
+			print("Player respawning with ", lives, " lives left")
+	else:
+		print("No lives remaining - game over")
 		end_game()
 
 func get_current_state() -> GameState:

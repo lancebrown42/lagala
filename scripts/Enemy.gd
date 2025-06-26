@@ -36,7 +36,7 @@ signal enemy_destroyed(enemy: Enemy, points: int)
 signal enemy_hit_player(enemy: Enemy)
 
 func _ready():
-	print("Enemy initialized: ", name)
+	# print("Enemy initialized: ", name)  # DEBUG DISABLED
 	
 	# Set up sprite
 	setup_sprite()
@@ -47,15 +47,15 @@ func _ready():
 	# Set up collision detection
 	call_deferred("setup_collision")
 	
-	# Connect to tree exiting to debug when enemies are removed
-	tree_exiting.connect(_on_tree_exiting)
+	# DEBUG DISABLED - tree_exiting.connect(_on_tree_exiting)
 
-func _on_tree_exiting():
-	"""Called when enemy is about to be removed from scene"""
-	print("=== ENEMY BEING REMOVED FROM SCENE ===")
-	print("Enemy name: ", name)
-	print("Enemy position: ", position)
-	print("Removal reason: ", "destroy() called" if is_being_destroyed else "unknown")
+# DEBUG DISABLED
+# func _on_tree_exiting():
+#	"""Called when enemy is about to be removed from scene"""
+#	print("=== ENEMY BEING REMOVED FROM SCENE ===")
+#	print("Enemy name: ", name)
+#	print("Enemy position: ", position)
+#	print("Removal reason: ", "destroy() called" if is_being_destroyed else "unknown")
 
 func setup_sprite():
 	"""Set up the enemy sprite"""
@@ -64,7 +64,7 @@ func setup_sprite():
 		if SpriteGenerator:
 			var enemy_texture = SpriteGenerator.create_enemy_sprite()
 			sprite.texture = enemy_texture
-			print("Enemy sprite set up with SpriteGenerator")
+			# print("Enemy sprite set up with SpriteGenerator")  # DEBUG DISABLED
 		else:
 			# Fallback: create a simple colored rectangle
 			var image = Image.create(24, 24, false, Image.FORMAT_RGBA8)
@@ -72,7 +72,7 @@ func setup_sprite():
 			var fallback_texture = ImageTexture.new()
 			fallback_texture.set_image(image)
 			sprite.texture = fallback_texture
-			print("Enemy sprite set up with fallback texture")
+			# print("Enemy sprite set up with fallback texture")  # DEBUG DISABLED
 
 func setup_collision():
 	"""Set up collision detection"""
@@ -81,9 +81,9 @@ func setup_collision():
 		if not area.body_entered.is_connected(_on_body_entered):
 			area.body_entered.connect(_on_body_entered)
 		# Removed area_entered connection - PlayerBullet handles bullet collisions
-		print("Enemy collision set up (body collision only)")
+		# print("Enemy collision set up (body collision only)")  # DEBUG DISABLED
 	else:
-		print("WARNING: Enemy Area2D not found!")
+		print("WARNING: Enemy Area2D not found!")  # Keep this warning
 
 func _physics_process(delta):
 	handle_movement(delta)
@@ -92,8 +92,15 @@ func _physics_process(delta):
 	# Move the enemy
 	move_and_slide()
 	
-	# Check if enemy has moved off screen (cleanup)
-	if position.y > screen_size.y + 50:
+	# Check if enemy reached bottom of screen (threatens player)
+	if position.y > screen_size.y - 10:
+		# Enemy reached bottom - this should damage player
+		emit_signal("enemy_hit_player", self)
+		destroy()  # Enemy is destroyed after hitting bottom
+		return
+	
+	# Check if enemy has moved way off screen (cleanup)
+	if position.y > screen_size.y + 100:
 		queue_free()
 
 func handle_movement(delta):
@@ -122,17 +129,22 @@ func move_to_formation(delta):
 func formation_movement(delta):
 	"""Gentle swaying movement while in formation"""
 	state_timer += delta
-	var sway = sin(state_timer * 2.0) * 10.0
-	position.x = formation_position.x + sway
+	
+	# More dynamic swaying with both horizontal and vertical movement
+	var horizontal_sway = sin(state_timer * 2.0) * 15.0  # Increased from 10.0
+	var vertical_sway = cos(state_timer * 1.5) * 8.0     # Added vertical component
+	
+	position.x = formation_position.x + horizontal_sway
+	position.y = formation_position.y + vertical_sway
 	velocity = Vector2.ZERO
 
 func diving_movement(delta):
 	"""Diving attack movement"""
 	var dive_direction = (dive_target - position).normalized()
-	velocity = dive_direction * speed * 3.0  # Faster during dive
+	velocity = dive_direction * speed * 4.0  # Increased from 3.0 - faster dives
 	
 	# Check if dive is complete (reached bottom or target)
-	if position.y > screen_size.y - 50 or position.distance_to(dive_target) < 20.0:
+	if position.y > screen_size.y - 20 or position.distance_to(dive_target) < 20.0:  # Changed from -50 to -20
 		current_state = EnemyState.RETURNING
 		dive_target = original_formation_pos
 
@@ -151,62 +163,64 @@ func update_state(delta):
 	state_timer += delta
 	
 	# Random chance to start diving (only if in formation)
-	if current_state == EnemyState.IN_FORMATION and randf() < 0.001:  # Very low chance per frame
+	if current_state == EnemyState.IN_FORMATION and randf() < 0.005:  # Increased from 0.001 - 5x more frequent dives
 		start_dive()
 
 func start_dive():
 	"""Initiate a diving attack"""
 	current_state = EnemyState.DIVING
 	
-	# Pick a random target near the bottom of the screen
+	# Pick a random target near the bottom of the screen - go much deeper!
 	dive_target = Vector2(
 		randf_range(50, screen_size.x - 50),
-		screen_size.y - 100
+		screen_size.y - 30  # Changed from -100 to -30, much closer to bottom
 	)
 	
-	print("Enemy starting dive attack to: ", dive_target)
+	# print("Enemy starting dive attack to: ", dive_target)  # DEBUG DISABLED
 
 func take_damage(damage: int = 1):
 	"""Take damage and handle destruction"""
 	if is_being_destroyed:
-		print("Enemy already being destroyed, ignoring damage")
+		# print("Enemy already being destroyed, ignoring damage")  # DEBUG DISABLED
 		return
 		
-	print("=== ENEMY TAKE DAMAGE ===")
-	print("Enemy: ", name)
-	print("Damage received: ", damage)
-	print("Health before: ", health)
+	# DEBUG DISABLED
+	# print("=== ENEMY TAKE DAMAGE ===")
+	# print("Enemy: ", name)
+	# print("Damage received: ", damage)
+	# print("Health before: ", health)
 	
 	health -= damage
-	print("Health after: ", health)
+	# print("Health after: ", health)  # DEBUG DISABLED
 	
 	if health <= 0:
-		print("Enemy health <= 0, calling destroy()")
+		# print("Enemy health <= 0, calling destroy()")  # DEBUG DISABLED
 		destroy()
-	else:
-		print("Enemy still alive with health: ", health)
+	# else:
+		# print("Enemy still alive with health: ", health)  # DEBUG DISABLED
 	
-	print("=== END TAKE DAMAGE ===")
+	# print("=== END TAKE DAMAGE ===")  # DEBUG DISABLED
 
 func destroy():
 	"""Destroy the enemy and award points"""
 	if is_being_destroyed:
-		print("Enemy already being destroyed, ignoring duplicate destroy call")
+		# print("Enemy already being destroyed, ignoring duplicate destroy call")  # DEBUG DISABLED
 		return
 		
 	is_being_destroyed = true
-	print("=== ENEMY DESTROY CALLED ===")
-	print("Enemy position: ", position)
-	print("Enemy name: ", name)
+	# DEBUG DISABLED
+	# print("=== ENEMY DESTROY CALLED ===")
+	# print("Enemy position: ", position)
+	# print("Enemy name: ", name)
 	
 	emit_signal("enemy_destroyed", self, points)
-	print("enemy_destroyed signal emitted with points: ", points)
+	# print("enemy_destroyed signal emitted with points: ", points)  # DEBUG DISABLED
 	
 	# TODO: Add explosion effect here
 	
-	print("About to queue_free() enemy")
+	# print("About to queue_free() enemy")  # DEBUG DISABLED
 	queue_free()
-	print("Enemy queued for deletion")
+	# print("Enemy queued for deletion")  # DEBUG DISABLED
 
 func set_formation_position(pos: Vector2):
 	"""Set the enemy's formation position"""
@@ -216,7 +230,13 @@ func set_formation_position(pos: Vector2):
 func _on_body_entered(body):
 	"""Handle collision with player"""
 	if body.is_in_group("player"):
+		# Call player's take_damage method for proper hit handling
+		if body.has_method("take_damage"):
+			body.take_damage()
+		
+		# Emit signal for any additional handling
 		emit_signal("enemy_hit_player", self)
+		
 		# Enemy is destroyed when hitting player
 		destroy()
 
