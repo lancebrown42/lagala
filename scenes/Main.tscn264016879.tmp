@@ -1,19 +1,15 @@
-[gd_scene load_steps=8 format=3 uid="uid://c2up8asjgljam"]
+[gd_scene load_steps=7 format=3 uid="uid://c2up8asjgljam"]
 
 [ext_resource type="Script" uid="uid://bxi8ckjsfd3rg" path="res://scripts/GameManager.gd" id="1_1a1a1"]
 [ext_resource type="Script" uid="uid://p5mf14a133bp" path="res://scripts/Main.gd" id="2_2b2b2"]
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="3_player"]
 [ext_resource type="Script" uid="uid://b654yedokmpx3" path="res://scripts/EnemyManager.gd" id="5_enemy_manager"]
 [ext_resource type="Script" uid="uid://b0dw6u4jt8y3n" path="res://scripts/Starfield.gd" id="6_starfield"]
-[ext_resource type="Script" uid="uid://bqxvn8j8k2h2s" path="res://scripts/AudioManager.gd" id="7_audio_manager"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_1a1a1"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("2_2b2b2")
-
-[node name="AudioManager" type="Node" parent="."]
-script = ExtResource("7_audio_manager")
 
 [node name="GameManager" type="Node" parent="."]
 script = ExtResource("1_1a1a1")

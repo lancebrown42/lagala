@@ -7,6 +7,7 @@ class_name Enemy
 @export var health: int = 1
 @export var speed: float = 50.0
 @export var points: int = 100  # Points awarded when destroyed
+@export var enemy_type: int = 0  # 0=bee, 1=boss, 2=small
 
 # Destruction safety
 var is_being_destroyed: bool = false
@@ -62,13 +63,18 @@ func setup_sprite():
 	if has_node("Sprite2D"):
 		var sprite = get_node("Sprite2D")
 		if SpriteGenerator:
-			var enemy_texture = SpriteGenerator.create_enemy_sprite()
+			var enemy_texture = SpriteGenerator.create_enemy_sprite(enemy_type)
 			sprite.texture = enemy_texture
 			# print("Enemy sprite set up with SpriteGenerator")  # DEBUG DISABLED
 		else:
 			# Fallback: create a simple colored rectangle
-			var image = Image.create(24, 24, false, Image.FORMAT_RGBA8)
-			image.fill(Color(1, 0.2, 0.2, 1))  # Red color
+			var image = Image.create(48, 48, false, Image.FORMAT_RGBA8)
+			var fallback_color = Color(1, 0.2, 0.2, 1)  # Default red
+			match enemy_type:
+				0: fallback_color = Color(1.0, 0.8, 0.2, 1)  # Yellow
+				1: fallback_color = Color(0.8, 0.2, 0.2, 1)  # Red
+				_: fallback_color = Color(0.2, 0.8, 0.3, 1)  # Green
+			image.fill(fallback_color)
 			var fallback_texture = ImageTexture.new()
 			fallback_texture.set_image(image)
 			sprite.texture = fallback_texture
@@ -212,6 +218,11 @@ func destroy():
 	# print("=== ENEMY DESTROY CALLED ===")
 	# print("Enemy position: ", position)
 	# print("Enemy name: ", name)
+	
+	# Play explosion sound
+	var audio_manager = AudioManager.get_audio_manager()
+	if audio_manager:
+		audio_manager.play_enemy_explosion_sound()
 	
 	emit_signal("enemy_destroyed", self, points)
 	# print("enemy_destroyed signal emitted with points: ", points)  # DEBUG DISABLED

@@ -53,6 +53,9 @@ func _ready():
 	# Set up collision detection for enemy hits
 	setup_hit_detection()
 	
+	# Set up enhanced sprite
+	setup_sprite()
+	
 	# Update ship width based on sprite (if available)
 	var sprite = get_node("Sprite2D") if has_node("Sprite2D") else null
 	if sprite and sprite.texture:
@@ -100,6 +103,11 @@ func shoot():
 	if not bullet_scene:
 		print("Warning: Bullet scene not loaded")
 		return
+	
+	# Play laser sound
+	var audio_manager = AudioManager.get_audio_manager()
+	if audio_manager:
+		audio_manager.play_laser_sound()
 	
 	# Create bullet
 	var bullet = bullet_scene.instantiate()
@@ -156,6 +164,11 @@ func take_damage():
 		return  # Already invulnerable, ignore hit
 	
 	print("Player hit! Processing damage...")
+	
+	# Play explosion sound
+	var audio_manager = AudioManager.get_audio_manager()
+	if audio_manager:
+		audio_manager.play_explosion_sound()
 	
 	# Emit signal for game manager to handle lives
 	emit_signal("player_hit")
@@ -222,3 +235,20 @@ func reset_position():
 	"""Reset player to starting position"""
 	position = Vector2(screen_size.x / 2, screen_size.y - 50)
 	velocity = Vector2.ZERO
+
+func setup_sprite():
+	"""Set up the enhanced player sprite"""
+	if has_node("Sprite2D"):
+		var sprite = get_node("Sprite2D")
+		if SpriteGenerator:
+			var player_texture = SpriteGenerator.create_player_sprite()
+			sprite.texture = player_texture
+			print("Player sprite set up with enhanced SpriteGenerator")
+		else:
+			print("SpriteGenerator not available - using fallback")
+			# Fallback sprite setup
+			var image = Image.create(32, 24, false, Image.FORMAT_RGBA8)
+			image.fill(Color(0.2, 0.5, 1.0, 1.0))
+			var fallback_texture = ImageTexture.new()
+			fallback_texture.set_image(image)
+			sprite.texture = fallback_texture

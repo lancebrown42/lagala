@@ -19,6 +19,10 @@ var formation_descent_timer: float = 0.0
 var formation_descent_speed: float = 10.0  # How fast formation moves down
 var formation_descent_interval: float = 15.0  # Every 15 seconds, move formation down
 
+# Enemy entrance patterns
+var entrance_patterns: Array[Array] = []
+var current_entrance_index: int = 0
+
 # Wave management
 var current_wave: int = 1
 var enemies_alive: Array[Enemy] = []
@@ -26,7 +30,7 @@ var wave_complete: bool = false
 var spawn_delay: float = 0.5  # Delay between enemy spawns
 var spawn_timer: float = 0.0
 var enemies_to_spawn: int = 0
-var spawn_queue: Array[Vector2] = []
+var spawn_queue: Array[Dictionary] = []
 
 # Screen size
 var screen_size: Vector2
@@ -91,14 +95,14 @@ func start_wave(wave_number: int = 1):
 func generate_formation_positions():
 	"""Generate the classic Galaga formation positions"""
 	spawn_queue.clear()
+	entrance_patterns.clear()
 	
 	# DEBUG DISABLED - Minimal output only
 	# print("Generating formation positions...")
-	# print("Screen size: ", screen_size)
-	# print("Formation start: (", formation_start_x, ", ", formation_start_y, ")")
-	# print("Enemy spacing: ", enemy_spacing)
 	
-	# Create formation grid
+	# Create formation grid with enemy types
+	var formation_data: Array[Dictionary] = []
+	
 	for row in range(formation_rows):
 		for col in range(formation_cols):
 			var x_pos = formation_start_x + (col * enemy_spacing.x)
@@ -112,15 +116,59 @@ func generate_formation_positions():
 			x_pos += randf_range(-5, 5)
 			y_pos += randf_range(-5, 5)
 			
-			var pos = Vector2(x_pos, y_pos)
-			spawn_queue.append(pos)
-			# DEBUG DISABLED
-			# print("Formation position ", row, ",", col, ": ", pos)
+			# Determine enemy type based on row
+			var enemy_type = 0  # Default bee type
+			var enemy_points = 100
+			if row == 0:  # Top row - boss enemies
+				enemy_type = 1
+				enemy_points = 400
+			elif row >= formation_rows - 1:  # Bottom row - small enemies
+				enemy_type = 2
+				enemy_points = 50
+			
+			var enemy_data = {
+				"position": Vector2(x_pos, y_pos),
+				"type": enemy_type,
+				"points": enemy_points,
+				"row": row,
+				"col": col
+			}
+			
+			formation_data.append(enemy_data)
 	
-	# Shuffle the spawn order for more interesting formation
-	spawn_queue.shuffle()
+	# Generate classic Galaga entrance patterns
+	generate_entrance_patterns(formation_data)
 	
-	# print("Generated ", spawn_queue.size(), " formation positions")  # DEBUG DISABLED
+	# print("Generated ", formation_data.size(), " formation positions")  # DEBUG DISABLED
+
+func generate_entrance_patterns(formation_data: Array[Dictionary]):
+	"""Generate classic Galaga-style entrance patterns"""
+	# Pattern 1: Side sweeps (left and right alternating)
+	var left_sweep: Array[Dictionary] = []
+	var right_sweep: Array[Dictionary] = []
+	
+	for enemy in formation_data:
+		if enemy.col % 2 == 0:
+			left_sweep.append(enemy)
+		else:
+			right_sweep.append(enemy)
+	
+	# Pattern 2: Center out
+	var center_out: Array[Dictionary] = []
+	formation_data.sort_custom(func(a, b): return abs(a.col - formation_cols/2) < abs(b.col - formation_cols/2))
+	center_out = formation_data.duplicate()
+	
+	# Pattern 3: Top to bottom waves
+	var wave_pattern: Array[Dictionary] = []
+	formation_data.sort_custom(func(a, b): return a.row < b.row)
+	wave_pattern = formation_data.duplicate()
+	
+	# Store patterns
+	entrance_patterns = [left_sweep, right_sweep, center_out, wave_pattern]
+	
+	# Use the first pattern for this wave
+	current_entrance_index = 0
+	spawn_queue = entrance_patterns[current_entrance_index].duplicate()
 
 func handle_spawning(delta):
 	"""Handle the spawning of enemies with delays"""
@@ -135,8 +183,9 @@ func handle_spawning(delta):
 		spawn_timer = 0.0
 
 func spawn_next_enemy():
-	"""Spawn the next enemy in the queue"""
-	print("spawn_next_enemy() called")
+	"""Spawn the next enemy in the queue with entrance animation"""
+	# DEBUG DISABLED - Minimal output only
+	# print("spawn_next_enemy() called")
 	
 	if spawn_queue.is_empty():
 		print("ERROR: Spawn queue is empty!")
@@ -144,70 +193,61 @@ func spawn_next_enemy():
 		
 	if not enemy_scene:
 		print("ERROR: Enemy scene is null!")
-		print("Attempting to reload enemy scene...")
 		enemy_scene = load("res://scenes/Enemy.tscn")
 		if not enemy_scene:
 			print("ERROR: Still could not load enemy scene!")
 			return
-		else:
-			print("Enemy scene reloaded successfully")
 	
-	# Get the formation position
-	var formation_pos = spawn_queue.pop_front()
-	print("Spawning enemy at formation position: ", formation_pos)
+	# Get the enemy data
+	var enemy_data = spawn_queue.pop_front()
+	# print("Spawning enemy at formation position: ", enemy_data.position)  # DEBUG DISABLED
 	
 	# Create enemy
-	print("Instantiating enemy from scene...")
 	var enemy = enemy_scene.instantiate()
-	print("Enemy instantiated: ", enemy != null)
 	
 	if not enemy:
 		print("ERROR: Failed to instantiate enemy!")
 		return
 	
-	print("Enemy type: ", enemy.get_class())
-	print("Enemy script: ", enemy.get_script())
+	# Set enemy properties based on data
+	enemy.enemy_type = enemy_data.type
+	enemy.points = enemy_data.points
+	enemy.formation_position = enemy_data.position
 	
-	# Set spawn position (off-screen top)
-	enemy.position = Vector2(formation_pos.x, -50)
-	print("Enemy spawn position set to: ", enemy.position)
+	# Set entrance position (off-screen)
+	var entrance_pos = get_entrance_position(enemy_data)
+	enemy.position = entrance_pos
 	
-	# Set formation position
-	if enemy.has_method("set_formation_position"):
-		enemy.set_formation_position(formation_pos)
-		print("Formation position set")
-	else:
-		print("WARNING: Enemy does not have set_formation_position method")
+	# Add to scene
+	add_child(enemy)
+	enemies_alive.append(enemy)
 	
 	# Connect signals
 	if enemy.has_signal("enemy_destroyed"):
 		if not enemy.enemy_destroyed.is_connected(_on_enemy_destroyed):
 			enemy.enemy_destroyed.connect(_on_enemy_destroyed)
-			print("enemy_destroyed signal connected")
-		else:
-			print("WARNING: enemy_destroyed signal already connected!")
-	else:
-		print("WARNING: Enemy does not have enemy_destroyed signal")
-		
+	
 	if enemy.has_signal("enemy_hit_player"):
 		if not enemy.enemy_hit_player.is_connected(_on_enemy_hit_player):
 			enemy.enemy_hit_player.connect(_on_enemy_hit_player)
-			print("enemy_hit_player signal connected")
-		else:
-			print("WARNING: enemy_hit_player signal already connected!")
-	else:
-		print("WARNING: Enemy does not have enemy_hit_player signal")
-	
-	# Add to scene and track
-	print("Adding enemy to scene...")
-	add_child(enemy)
-	enemies_alive.append(enemy)
 	
 	enemies_to_spawn -= 1
+
+func get_entrance_position(enemy_data: Dictionary) -> Vector2:
+	"""Get entrance position for classic Galaga-style entry"""
+	var entrance_pos: Vector2
 	
-	print("Enemy added to scene. Total enemies alive: ", enemies_alive.size())
-	print("Enemy visible: ", enemy.visible)
-	print("Enemy global position: ", enemy.global_position)
+	match current_entrance_index:
+		0: # Left sweep
+			entrance_pos = Vector2(-50, enemy_data.position.y - 100)
+		1: # Right sweep  
+			entrance_pos = Vector2(screen_size.x + 50, enemy_data.position.y - 100)
+		2: # Center out
+			entrance_pos = Vector2(screen_size.x / 2, -50)
+		_: # Top to bottom waves
+			entrance_pos = Vector2(enemy_data.position.x, -50)
+	
+	return entrance_pos
 
 func check_wave_completion():
 	"""Check if the current wave is complete"""

@@ -32,11 +32,19 @@ func _ready():
 	velocity = Vector2(0, -speed)
 
 func setup_sprite():
-	"""Set up the bullet sprite"""
+	"""Set up the enhanced bullet sprite"""
 	if has_node("Sprite2D"):
 		var sprite = get_node("Sprite2D")
-		var texture = SpriteGenerator.create_bullet_sprite()
-		sprite.texture = texture
+		if SpriteGenerator:
+			var bullet_texture = SpriteGenerator.create_bullet_sprite()
+			sprite.texture = bullet_texture
+		else:
+			# Fallback sprite
+			var image = Image.create(4, 8, false, Image.FORMAT_RGBA8)
+			image.fill(Color(1.0, 1.0, 0.2, 1.0))
+			var fallback_texture = ImageTexture.new()
+			fallback_texture.set_image(image)
+			sprite.texture = fallback_texture
 
 func _physics_process(delta):
 	# Move the bullet
