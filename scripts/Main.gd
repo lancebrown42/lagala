@@ -14,6 +14,7 @@ extends Node2D
 @onready var final_score_label = $UI/GameOverScreen/VBoxContainer/FinalScoreLabel
 @onready var start_button = $UI/StartScreen/VBoxContainer/StartButton
 @onready var restart_button = $UI/GameOverScreen/VBoxContainer/RestartButton
+@onready var audio_manager: AudioManager = $AudioManager
 
 func _ready():
 	print("Main scene loaded")
@@ -67,7 +68,21 @@ func _ready():
 
 func _process(_delta):
 	# Handle frame-rate independent updates
-	pass
+	# Handle pause input
+	if Input.is_action_just_pressed("ui_cancel"):  # ESC key
+		toggle_pause()
+
+func toggle_pause():
+	"""Toggle game pause state"""
+	get_tree().paused = !get_tree().paused
+	
+	if audio_manager:
+		if get_tree().paused:
+			audio_manager.pause_music()
+			print("Game paused - music paused")
+		else:
+			audio_manager.resume_music()
+			print("Game resumed - music resumed")
 
 func show_start_screen():
 	"""Show the start screen"""
@@ -76,6 +91,10 @@ func show_start_screen():
 	game_over_screen.visible = false
 	if player:
 		player.visible = false
+	
+	# Ensure music is playing on start screen
+	if audio_manager and not audio_manager.is_music_playing():
+		audio_manager.play_music()
 
 func show_game_screen():
 	"""Show the game HUD"""
@@ -85,6 +104,10 @@ func show_game_screen():
 	if player:
 		player.visible = true
 		player.reset_position()
+	
+	# Ensure music continues during gameplay
+	if audio_manager and not audio_manager.is_music_playing():
+		audio_manager.play_music()
 
 func show_game_over_screen():
 	"""Show the game over screen"""
@@ -93,6 +116,10 @@ func show_game_over_screen():
 	game_over_screen.visible = true
 	if player:
 		player.visible = false
+	
+	# Keep music playing on game over screen
+	if audio_manager and not audio_manager.is_music_playing():
+		audio_manager.play_music()
 
 # Signal handlers
 func _on_start_button_pressed():

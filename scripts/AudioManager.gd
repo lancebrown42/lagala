@@ -1,22 +1,41 @@
 extends Node
 
-# Audio Manager for procedural sound generation
+# Audio Manager for procedural sound generation and background music
 class_name AudioManager
 
 # Audio players for different sound types
 var laser_player: AudioStreamPlayer
 var explosion_player: AudioStreamPlayer
 var enemy_explosion_player: AudioStreamPlayer
+var music_player: AudioStreamPlayer
 
 func _ready():
 	# Create audio players
 	laser_player = AudioStreamPlayer.new()
 	explosion_player = AudioStreamPlayer.new()
 	enemy_explosion_player = AudioStreamPlayer.new()
+	music_player = AudioStreamPlayer.new()
 	
 	add_child(laser_player)
 	add_child(explosion_player)
 	add_child(enemy_explosion_player)
+	add_child(music_player)
+	
+	# Setup background music
+	setup_background_music()
+
+func setup_background_music():
+	"""Setup and start background music"""
+	var music_stream = load("res://assets/sounds/Pixel Odyssey.mp3")
+	if music_stream:
+		music_player.stream = music_stream
+		music_player.autoplay = true
+		music_player.stream.loop = true
+		music_player.volume_db = -10  # Reduce volume so it doesn't overpower sound effects
+		music_player.play()
+		print("Background music started: Pixel Odyssey")
+	else:
+		print("Warning: Could not load background music file")
 
 func create_laser_wav() -> AudioStreamWAV:
 	"""Create a chippy laser sound using WAV format"""
@@ -152,6 +171,36 @@ func play_enemy_explosion_sound():
 	if enemy_explosion_player and not enemy_explosion_player.playing:
 		enemy_explosion_player.stream = create_enemy_explosion_wav()
 		enemy_explosion_player.play()
+
+# Background music control functions
+func play_music():
+	"""Start or resume background music"""
+	if music_player and music_player.stream:
+		music_player.play()
+
+func stop_music():
+	"""Stop background music"""
+	if music_player:
+		music_player.stop()
+
+func pause_music():
+	"""Pause background music"""
+	if music_player:
+		music_player.stream_paused = true
+
+func resume_music():
+	"""Resume background music"""
+	if music_player:
+		music_player.stream_paused = false
+
+func set_music_volume(volume_db: float):
+	"""Set background music volume (-80 to 24 dB)"""
+	if music_player:
+		music_player.volume_db = clamp(volume_db, -80, 24)
+
+func is_music_playing() -> bool:
+	"""Check if background music is currently playing"""
+	return music_player and music_player.playing and not music_player.stream_paused
 
 # Static methods for easy access from other scripts
 static func get_audio_manager() -> AudioManager:
