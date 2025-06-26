@@ -1,0 +1,143 @@
+[gd_scene load_steps=8 format=3 uid="uid://c2up8asjgljam"]
+
+[ext_resource type="Script" uid="uid://bxi8ckjsfd3rg" path="res://scripts/GameManager.gd" id="1_1a1a1"]
+[ext_resource type="Script" uid="uid://p5mf14a133bp" path="res://scripts/Main.gd" id="2_2b2b2"]
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="3_player"]
+[ext_resource type="Script" uid="uid://cmv2gqpkees02" path="res://scripts/Phase2Tester.gd" id="4_tester"]
+[ext_resource type="Script" uid="uid://dkjcf86kgrn1p" path="res://scripts/ButtonDebugger.gd" id="5_debug"]
+[ext_resource type="Script" uid="uid://d4llc888jx26x" path="res://scripts/GameManagerTest.gd" id="6_gmtest"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_1a1a1"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("2_2b2b2")
+
+[node name="GameManager" type="Node" parent="."]
+script = ExtResource("1_1a1a1")
+
+[node name="GameWorld" type="Node2D" parent="."]
+
+[node name="Player" parent="GameWorld" instance=ExtResource("3_player")]
+visible = false
+
+[node name="Phase2Tester" type="Node" parent="."]
+script = ExtResource("4_tester")
+
+[node name="ButtonDebugger" type="Node" parent="."]
+script = ExtResource("5_debug")
+
+[node name="GameManagerTest" type="Node" parent="."]
+script = ExtResource("6_gmtest")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HUD" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ScoreLabel" type="Label" parent="UI/HUD"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 200.0
+offset_bottom = 35.0
+text = "SCORE: 0"
+label_settings = SubResource("LabelSettings_1a1a1")
+
+[node name="LivesLabel" type="Label" parent="UI/HUD"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 40.0
+offset_right = 200.0
+offset_bottom = 65.0
+text = "LIVES: 3"
+
+[node name="StartScreen" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/StartScreen"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -75.0
+offset_right = 100.0
+offset_bottom = 75.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleLabel" type="Label" parent="UI/StartScreen/VBoxContainer"]
+layout_mode = 2
+text = "LAGALA"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="UI/StartScreen/VBoxContainer"]
+layout_mode = 2
+text = "A Galaga Clone"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="UI/StartScreen/VBoxContainer"]
+layout_mode = 2
+
+[node name="InstructionsLabel" type="Label" parent="UI/StartScreen/VBoxContainer"]
+layout_mode = 2
+text = "A/D or Arrow Keys - Move
+SPACE - Shoot
+ESC - Pause"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="UI/StartScreen/VBoxContainer"]
+layout_mode = 2
+
+[node name="StartButton" type="Button" parent="UI/StartScreen/VBoxContainer"]
+layout_mode = 2
+text = "START GAME"
+
+[node name="GameOverScreen" type="Control" parent="UI"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/GameOverScreen"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -50.0
+offset_right = 100.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GameOverLabel" type="Label" parent="UI/GameOverScreen/VBoxContainer"]
+layout_mode = 2
+text = "GAME OVER"
+horizontal_alignment = 1
+
+[node name="FinalScoreLabel" type="Label" parent="UI/GameOverScreen/VBoxContainer"]
+layout_mode = 2
+text = "Final Score: 0"
+horizontal_alignment = 1
+
+[node name="RestartButton" type="Button" parent="UI/GameOverScreen/VBoxContainer"]
+layout_mode = 2
+text = "RESTART"

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://minimal_test_uid"]
+
+[ext_resource type="Script" path="res://scripts/MinimalTest.gd" id="1"]
+
+[node name="MinimalTest" type="Node"]
+script = ExtResource("1")
