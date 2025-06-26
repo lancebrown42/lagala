@@ -55,11 +55,32 @@ func _on_body_entered(body):
 
 func _on_area_entered(area):
 	"""Handle collision with areas (enemy bullets, etc.)"""
+	print("=== BULLET COLLISION ===")
+	print("Bullet hit area: ", area.name if area else "null")
+	print("Area parent: ", area.get_parent().name if area and area.get_parent() else "null")
+	print("Area groups: ", area.get_groups() if area else "none")
+	
 	if area.is_in_group("enemies"):
-		if area.has_method("take_damage"):
-			area.take_damage(damage)
-			emit_signal("enemy_hit", area, damage)
+		print("Hit confirmed: Enemy area detected")
+		# The enemy's Area2D was hit, get the parent Enemy node
+		var enemy = area.get_parent()
+		print("Enemy found: ", enemy.name if enemy else "null")
+		
+		if enemy.has_method("take_damage"):
+			print("Calling enemy.take_damage() with damage: ", damage)
+			enemy.take_damage(damage)
+			emit_signal("enemy_hit", enemy, damage)
+			print("Enemy hit signal emitted")
+		else:
+			print("ERROR: Enemy doesn't have take_damage method")
+		
+		print("About to destroy bullet")
 		destroy_bullet()
+		print("Bullet destroyed")
+	else:
+		print("Not an enemy - ignoring collision")
+	
+	print("=== END BULLET COLLISION ===")
 
 func destroy_bullet():
 	"""Destroy the bullet"""

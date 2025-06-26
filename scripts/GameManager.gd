@@ -67,8 +67,18 @@ func toggle_pause():
 
 func add_score(points: int):
 	"""Add points to the score"""
+	print("=== GAME MANAGER: Adding score ===")
+	print("Points to add: ", points)
+	print("Current score: ", score)
+	print("Current lives: ", lives)
+	print("Current state: ", current_state)
+	
 	score += points
+	print("New score: ", score)
+	
 	emit_signal("score_changed", score)
+	print("score_changed signal emitted")
+	print("=== END Add score ===")
 
 func lose_life():
 	"""Player loses a life"""

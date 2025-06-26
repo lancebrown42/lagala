@@ -45,3 +45,27 @@ static func create_simple_rect_sprite(width: int, height: int, color: Color) -> 
 	var texture = ImageTexture.new()
 	texture.set_image(image)
 	return texture
+
+static func create_enemy_sprite() -> ImageTexture:
+	"""Create a simple enemy sprite"""
+	var image = Image.create(24, 24, false, Image.FORMAT_RGBA8)
+	
+	# Create a simple enemy shape
+	image.fill(Color.TRANSPARENT)
+	
+	# Draw enemy body (inverted triangle/diamond shape)
+	for y in range(24):
+		for x in range(24):
+			var center_x = 12
+			var center_y = 12
+			var distance = sqrt((x - center_x) * (x - center_x) + (y - center_y) * (y - center_y))
+			
+			if distance < 10:
+				if y < 12:
+					image.set_pixel(x, y, Color(1.0, 0.3, 0.3, 1.0))  # Red top
+				else:
+					image.set_pixel(x, y, Color(0.8, 0.2, 0.2, 1.0))  # Darker red bottom
+	
+	var texture = ImageTexture.new()
+	texture.set_image(image)
+	return texture

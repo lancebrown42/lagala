@@ -5,7 +5,7 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
 size = Vector2(4, 8)
 
-[node name="PlayerBullet" type="Area2D"]
+[node name="PlayerBullet" type="Area2D" groups=["player_bullets"]]
 script = ExtResource("1_bullet")
 speed = 400.0
 

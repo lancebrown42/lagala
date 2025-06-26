@@ -33,6 +33,9 @@ signal bullet_fired(bullet_position: Vector2)
 func _ready():
 	print("Player ship initialized")
 	
+	# Add player to group for collision detection
+	add_to_group("player")
+	
 	# Get screen size
 	screen_size = get_viewport().get_visible_rect().size
 	print("Screen size: ", screen_size)

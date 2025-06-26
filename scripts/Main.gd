@@ -5,6 +5,7 @@ extends Node2D
 # References to UI elements
 @onready var game_manager: GameManager = $GameManager
 @onready var player: Player = $GameWorld/Player
+@onready var enemy_manager: EnemyManager = $GameWorld/EnemyManager
 @onready var hud = $UI/HUD
 @onready var start_screen = $UI/StartScreen
 @onready var game_over_screen = $UI/GameOverScreen
@@ -51,6 +52,15 @@ func _ready():
 		setup_player_sprite()
 	else:
 		print("WARNING: Player not found!")
+	
+	# Connect enemy manager signals
+	if enemy_manager:
+		enemy_manager.enemy_destroyed_signal.connect(_on_enemy_destroyed)
+		enemy_manager.wave_complete_signal.connect(_on_wave_complete)
+		enemy_manager.all_enemies_destroyed.connect(_on_all_enemies_destroyed)
+		print("EnemyManager connected successfully")
+	else:
+		print("WARNING: EnemyManager not found during initialization!")
 	
 	# Show start screen initially
 	show_start_screen()
@@ -102,9 +112,18 @@ func _on_restart_button_pressed():
 func _on_game_started():
 	print("Game started signal received")
 	show_game_screen()
+	
+	# Start the first wave of enemies
+	if enemy_manager:
+		print("EnemyManager found, starting wave 1")
+		enemy_manager.start_wave(1)
+	else:
+		print("ERROR: EnemyManager not found! Cannot start enemies.")
 
 func _on_game_over():
 	print("Game over signal received")
+	print("This should only happen when player loses all lives!")
+	print("Current lives: ", game_manager.lives if game_manager else "unknown")
 	final_score_label.text = "Final Score: " + str(game_manager.score)
 	show_game_over_screen()
 
@@ -148,3 +167,35 @@ func setup_player_sprite():
 	
 	# Make sure the sprite is visible
 	sprite.visible = true
+
+# Enemy signal handlers
+func _on_enemy_destroyed(points: int):
+	"""Handle enemy destruction and award points"""
+	print("=== MAIN: Enemy destroyed signal received ===")
+	print("Points to award: ", points)
+	print("Player visible before: ", player.visible if player else "player is null")
+	print("GameManager exists: ", game_manager != null)
+	
+	if game_manager:
+		print("Current score before: ", game_manager.score)
+		game_manager.add_score(points)
+		print("Current score after: ", game_manager.score)
+	else:
+		print("ERROR: GameManager is null!")
+	
+	print("Player visible after: ", player.visible if player else "player is null")
+	print("=== END Enemy destroyed handling ===")
+
+func _on_wave_complete(wave_number: int):
+	"""Handle wave completion"""
+	print("Wave ", wave_number, " completed!")
+	print("Player visible: ", player.visible if player else "player is null")
+	# Could add bonus points, show wave complete message, etc.
+
+func _on_all_enemies_destroyed():
+	"""Handle all enemies being destroyed"""
+	print("All enemies destroyed!")
+	print("Player visible: ", player.visible if player else "player is null")
+	# Wave will automatically start the next one
+
+# Removed _input function that was conflicting with shoot action

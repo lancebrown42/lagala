@@ -1,11 +1,12 @@
-[gd_scene load_steps=8 format=3 uid="uid://c2up8asjgljam"]
+[gd_scene load_steps=9 format=3 uid="uid://c2up8asjgljam"]
 
 [ext_resource type="Script" uid="uid://bxi8ckjsfd3rg" path="res://scripts/GameManager.gd" id="1_1a1a1"]
 [ext_resource type="Script" uid="uid://p5mf14a133bp" path="res://scripts/Main.gd" id="2_2b2b2"]
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="3_player"]
 [ext_resource type="Script" uid="uid://cmv2gqpkees02" path="res://scripts/Phase2Tester.gd" id="4_tester"]
-[ext_resource type="Script" uid="uid://dkjcf86kgrn1p" path="res://scripts/ButtonDebugger.gd" id="5_debug"]
-[ext_resource type="Script" uid="uid://d4llc888jx26x" path="res://scripts/GameManagerTest.gd" id="6_gmtest"]
+[ext_resource type="Script" uid="uid://b654yedokmpx3" path="res://scripts/EnemyManager.gd" id="5_enemy_manager"]
+[ext_resource type="Script" uid="uid://dkjcf86kgrn1p" path="res://scripts/ButtonDebugger.gd" id="6_debug"]
+[ext_resource type="Script" uid="uid://d4llc888jx26x" path="res://scripts/GameManagerTest.gd" id="7_gmtest"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_1a1a1"]
 
@@ -20,14 +21,17 @@ script = ExtResource("1_1a1a1")
 [node name="Player" parent="GameWorld" instance=ExtResource("3_player")]
 visible = false
 
+[node name="EnemyManager" type="Node2D" parent="GameWorld"]
+script = ExtResource("5_enemy_manager")
+
 [node name="Phase2Tester" type="Node" parent="."]
 script = ExtResource("4_tester")
 
 [node name="ButtonDebugger" type="Node" parent="."]
-script = ExtResource("5_debug")
+script = ExtResource("6_debug")
 
 [node name="GameManagerTest" type="Node" parent="."]
-script = ExtResource("6_gmtest")
+script = ExtResource("7_gmtest")
 
 [node name="UI" type="CanvasLayer" parent="."]
 

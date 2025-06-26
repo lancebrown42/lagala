@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://minimal_test_uid"]
+[gd_scene load_steps=2 format=3 uid="uid://el3tpwuqtpsi"]
 
-[ext_resource type="Script" path="res://scripts/MinimalTest.gd" id="1"]
+[ext_resource type="Script" uid="uid://cxgkkul14hhfr" path="res://scripts/MinimalTest.gd" id="1"]
 
 [node name="MinimalTest" type="Node"]
 script = ExtResource("1")
