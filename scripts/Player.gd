@@ -3,7 +3,10 @@ extends CharacterBody2D
 # Player Ship - Handles movement, shooting, and player interactions
 class_name Player
 
-# Movement properties
+# Movement state for touch controls
+var touch_move_left: bool = false
+var touch_move_right: bool = false
+var touch_shoot: bool = false
 @export var speed: float = 200.0
 @export var acceleration: float = 800.0
 @export var friction: float = 600.0
@@ -74,10 +77,10 @@ func handle_movement(delta):
 	"""Handle player ship movement"""
 	var input_direction = 0.0
 	
-	# Get input
-	if Input.is_action_pressed("move_left"):
+	# Get input (keyboard + touch)
+	if Input.is_action_pressed("move_left") or touch_move_left:
 		input_direction -= 1.0
-	if Input.is_action_pressed("move_right"):
+	if Input.is_action_pressed("move_right") or touch_move_right:
 		input_direction += 1.0
 	
 	# Apply movement with acceleration/friction
@@ -94,9 +97,10 @@ func handle_shooting(delta):
 		if shoot_timer <= 0:
 			can_shoot = true
 	
-	# Check for shoot input
-	if Input.is_action_just_pressed("shoot") and can_shoot and active_bullets.size() < max_bullets:
+	# Check for shoot input (keyboard + touch)
+	if (Input.is_action_just_pressed("shoot") or touch_shoot) and can_shoot and active_bullets.size() < max_bullets:
 		shoot()
+		touch_shoot = false  # Reset touch shoot to prevent continuous firing
 
 func shoot():
 	"""Fire a bullet"""
@@ -252,3 +256,28 @@ func setup_sprite():
 			var fallback_texture = ImageTexture.new()
 			fallback_texture.set_image(image)
 			sprite.texture = fallback_texture
+
+# Touch control signal handlers
+func _on_move_left_pressed():
+	"""Handle touch move left pressed"""
+	touch_move_left = true
+
+func _on_move_left_released():
+	"""Handle touch move left released"""
+	touch_move_left = false
+
+func _on_move_right_pressed():
+	"""Handle touch move right pressed"""
+	touch_move_right = true
+
+func _on_move_right_released():
+	"""Handle touch move right released"""
+	touch_move_right = false
+
+func _on_shoot_pressed():
+	"""Handle touch shoot pressed"""
+	touch_shoot = true
+
+func _on_shoot_released():
+	"""Handle touch shoot released"""
+	touch_shoot = false

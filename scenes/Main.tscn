@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://c2up8asjgljam"]
+[gd_scene load_steps=9 format=3 uid="uid://c2up8asjgljam"]
 
 [ext_resource type="Script" uid="uid://bxi8ckjsfd3rg" path="res://scripts/GameManager.gd" id="1_1a1a1"]
 [ext_resource type="Script" uid="uid://p5mf14a133bp" path="res://scripts/Main.gd" id="2_2b2b2"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://b654yedokmpx3" path="res://scripts/EnemyManager.gd" id="5_enemy_manager"]
 [ext_resource type="Script" uid="uid://b0dw6u4jt8y3n" path="res://scripts/Starfield.gd" id="6_starfield"]
 [ext_resource type="Script" uid="uid://bqxvn8j8k2h2s" path="res://scripts/AudioManager.gd" id="7_audio_manager"]
+[ext_resource type="Script" path="res://scripts/TouchControls.gd" id="8_touch_controls"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_1a1a1"]
 
@@ -144,3 +145,12 @@ horizontal_alignment = 1
 [node name="RestartButton" type="Button" parent="UI/GameOverScreen/VBoxContainer"]
 layout_mode = 2
 text = "RESTART"
+
+[node name="TouchControls" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("8_touch_controls")
